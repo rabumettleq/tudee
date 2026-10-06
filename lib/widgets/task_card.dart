@@ -4,10 +4,12 @@ import '../models/task.dart';
 class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback onTap;
+  final VoidCallback onStatusTap;
 
   TaskCard({
     required this.task,
     required this.onTap,
+    required this.onStatusTap,
   });
 
   @override
@@ -38,25 +40,28 @@ class TaskCard extends StatelessWidget {
               height: 28,
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: task.isDone
-                        ? Color(0xFF76C499)
-                        : Color(0xFF9887F5),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    task.isDone ? 'Done' : 'TODO',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      height: 16 / 12,
-                      color: Color(0xDEFFFFFF),
+                child: GestureDetector(
+                  onTap: onStatusTap,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: task.isDone
+                          ? Color(0xFF76C499)
+                          : Color(0xFF9887F5),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      task.isDone ? 'Done' : 'TODO',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        height: 16 / 12,
+                        color: Color(0xDEFFFFFF),
+                      ),
                     ),
                   ),
                 ),

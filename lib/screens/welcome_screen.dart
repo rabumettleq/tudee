@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/tudee_header.dart';
 import 'home_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
+
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final TextEditingController nameController = TextEditingController();
+  bool isSaving = false;
 
-  void saveName() {
+  Future<void> saveName() async {
+    if (isSaving) {
+      return;
+    }
+
     String name = nameController.text.trim();
 
     if (name.isEmpty) {
@@ -23,6 +31,42 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
 
     FocusScope.of(context).unfocus();
+
+    setState(() {
+      isSaving = true;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      bool saved = await prefs.setString('user_name', name);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!saved) {
+        throw Exception('Name was not saved');
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        isSaving = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not save your name. Please try again.'),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
 
     Navigator.pushReplacement(
       context,
@@ -88,6 +132,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         height: 56,
                         child: TextField(
                           controller: nameController,
+                          enabled: !isSaving,
                           textCapitalization: TextCapitalization.words,
                           textInputAction: TextInputAction.done,
                           textAlignVertical: TextAlignVertical.center,
@@ -117,6 +162,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               vertical: 17,
                             ),
                             enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: Color(0xFFD1D6DE),
+                                width: 1,
+                              ),
+                            ),
+                            disabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
                                 color: Color(0xFFD1D6DE),
@@ -154,9 +206,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ),
                     child: ElevatedButton(
-                      onPressed: saveName,
+                      onPressed: isSaving ? null : saveName,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
+                        disabledBackgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
                         foregroundColor: Color(0xDEFFFFFF),
                         elevation: 0,
@@ -169,7 +222,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       child: Text(
-                        'Save',
+                        isSaving ? 'Saving...' : 'Save',
                         style: TextStyle(
                           fontFamily: 'Nunito',
                           fontSize: 16,

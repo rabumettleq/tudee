@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/tudee_header.dart';
 
 class AddTaskScreen extends StatefulWidget {
+  const AddTaskScreen({super.key});
+
   @override
   State<AddTaskScreen> createState() => _AddTaskScreenState();
 }

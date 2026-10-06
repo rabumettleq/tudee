@@ -1,23 +1,38 @@
 import 'package:flutter/material.dart';
+import '../database/hive_service.dart';
 import '../models/task.dart';
 import '../widgets/tudee_header.dart';
 import '../widgets/task_stats_card.dart';
-import 'add_task_screen.dart';
-import 'edit_task_screen.dart';
 import '../widgets/empty_tasks_card.dart';
 import '../widgets/task_card.dart';
+import 'add_task_screen.dart';
+import 'edit_task_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String name;
 
-  HomeScreen({required this.name});
+  const HomeScreen({super.key, required this.name});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final HiveService hiveService = HiveService();
   List<Task> tasks = [];
+  bool isChangingStatus = false;
+
+  @override
+  void initState() {
+    super.initState();
+    tasks = hiveService.getTasks();
+  }
+
+  void loadTasks() {
+    setState(() {
+      tasks = hiveService.getTasks();
+    });
+  }
 
   Future<void> addTask() async {
     String? title = await Navigator.push<String>(
@@ -31,16 +46,26 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    setState(() {
-      tasks.add(Task(title: title));
-    });
+    await hiveService.addTask(Task(title: title));
+
+    if (!mounted) {
+      return;
+    }
+
+    loadTasks();
   }
 
-  Future<void> editTask(Task task) async {
+  Future<void> editTask(int index) async {
+    if (isChangingStatus) {
+      return;
+    }
+
     Task? updatedTask = await Navigator.push<Task>(
       context,
       MaterialPageRoute(
-        builder: (context) => EditTaskScreen(task: task),
+        builder: (context) => EditTaskScreen(
+          task: tasks[index],
+        ),
       ),
     );
 
@@ -48,10 +73,48 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    setState(() {
-      task.title = updatedTask.title;
-      task.isDone = updatedTask.isDone;
-    });
+    await hiveService.updateTask(index, updatedTask);
+
+    if (!mounted) {
+      return;
+    }
+
+    loadTasks();
+  }
+
+  Future<void> toggleTaskStatus(int index) async {
+    if (isChangingStatus) {
+      return;
+    }
+
+    isChangingStatus = true;
+
+    Task updatedTask = Task(
+      title: tasks[index].title,
+      isDone: !tasks[index].isDone,
+    );
+
+    try {
+      await hiveService.updateTask(index, updatedTask);
+
+      if (!mounted) {
+        return;
+      }
+
+      loadTasks();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not update task status. Please try again.'),
+        ),
+      );
+    } finally {
+      isChangingStatus = false;
+    }
   }
 
   @override
@@ -115,14 +178,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 16),
               if (tasks.isEmpty) EmptyTasksCard(),
-              ...tasks.map((task) {
-                return TaskCard(
-                  task: task,
+              for (int i = 0; i < tasks.length; i++)
+                TaskCard(
+                  task: tasks[i],
                   onTap: () {
-                    editTask(task);
+                    editTask(i);
                   },
-                );
-              }),
+                  onStatusTap: () {
+                    toggleTaskStatus(i);
+                  },
+                ),
             ],
           ),
         ),
@@ -152,11 +217,10 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: CircleBorder(),
           child: Icon(
             Icons.note_add_outlined,
-            size: 24,
+            size: 28,
           ),
         ),
       ),
-
     );
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class TudeeHeader extends StatelessWidget implements PreferredSizeWidget {
+  const TudeeHeader({super.key});
+
   @override
   Size get preferredSize => Size.fromHeight(48);
 

@@ -13,14 +13,11 @@ class EditTaskScreen extends StatefulWidget {
 
 class _EditTaskScreenState extends State<EditTaskScreen> {
   final TextEditingController taskController = TextEditingController();
-  bool isDone = false;
 
   @override
   void initState() {
     super.initState();
-
     taskController.text = widget.task.title;
-    isDone = widget.task.isDone;
   }
 
   void saveChanges() {
@@ -37,7 +34,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
 
     Task updatedTask = Task(
       title: title,
-      isDone: isDone,
+      isDone: widget.task.isDone,
     );
 
     Navigator.pop(context, updatedTask);
@@ -104,59 +101,6 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                   borderSide: BorderSide.none,
                 ),
               ),
-            ),
-            SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      isDone = false;
-                    });
-                  },
-                  icon: Icon(
-                    Icons.pending_actions,
-                    size: 18,
-                  ),
-                  label: Text('To Do'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDone
-                        ? Color(0xFFD5CCFC)
-                        : Color(0xFF9B86F8),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      isDone = true;
-                    });
-                  },
-                  icon: Icon(
-                    Icons.task_alt,
-                    size: 18,
-                  ),
-                  label: Text('Done'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDone
-                        ? Color(0xFF76C499)
-                        : Color(0xFFB8D9C4),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
             ),
             SizedBox(height: 24),
             SizedBox(
