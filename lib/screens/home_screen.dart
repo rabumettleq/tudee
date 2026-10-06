@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
     int todoCount = tasks.length - doneCount;
 
     return Scaffold(
-      backgroundColor: Color(0xFFFBE7E8),
+      backgroundColor: Color(0xFFFCE8E8),
       appBar: TudeeHeader(),
       body: Center(
         child: ConstrainedBox(
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             title: 'Done',
                             count: doneCount,
                             color: Color(0xFF76C499),
-                            icon: Icons.task_alt,
+                            imagePath: 'assets/icons/Done-Vector.png',
                           ),
                         ),
                         SizedBox(width: 8),
@@ -168,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             title: 'To-Do',
                             count: todoCount,
                             color: Color(0xFF9887F5),
-                            icon: Icons.pending_actions,
+                            imagePath: 'assets/icons/ToDo-Vector.png',
                           ),
                         ),
                       ],
@@ -215,9 +215,12 @@ class _HomeScreenState extends State<HomeScreen> {
           hoverElevation: 0,
           highlightElevation: 0,
           shape: CircleBorder(),
-          child: Icon(
-            Icons.note_add_outlined,
-            size: 28,
+          child: Image.asset(
+            'assets/icons/add-icon.png',
+            width: 28,
+            height: 28,
+            fit: BoxFit.contain,
+            color: Color(0xDEFFFFFF),
           ),
         ),
       ),

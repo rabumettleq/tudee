@@ -85,7 +85,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFBE7E8),
+      backgroundColor: Color(0xFFFCE8E8),
       appBar: TudeeHeader(),
       body: SingleChildScrollView(
         child: Center(

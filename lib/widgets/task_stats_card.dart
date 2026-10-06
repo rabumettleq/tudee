@@ -4,13 +4,13 @@ class TaskStatsCard extends StatelessWidget {
   final String title;
   final int count;
   final Color color;
-  final IconData icon;
+  final String imagePath;
 
   TaskStatsCard({
     required this.title,
     required this.count,
     required this.color,
-    required this.icon,
+    required this.imagePath,
   });
 
   @override
@@ -35,10 +35,14 @@ class TaskStatsCard extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: Color(0xDEFFFFFF),
+            child: Center(
+              child: Image.asset(
+                imagePath,
+                width: 24,
+                height: 24,
+                fit: BoxFit.contain,
+                color: Color(0xDEFFFFFF),
+              ),
             ),
           ),
           SizedBox(height: 8),

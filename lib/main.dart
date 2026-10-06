@@ -60,7 +60,7 @@ class _StartScreenState extends State<StartScreen> {
   Widget build(BuildContext context) {
     if (isLoading) {
       return Scaffold(
-        backgroundColor: Color(0xFFFBE7E8),
+        backgroundColor: Color(0xFFFCE8E8),
         body: Center(
           child: CircularProgressIndicator(
             color: Color(0xFF49BAF2),
