@@ -6,7 +6,8 @@ class TaskStatsCard extends StatelessWidget {
   final Color color;
   final String imagePath;
 
-  TaskStatsCard({
+  const TaskStatsCard({
+    super.key,
     required this.title,
     required this.count,
     required this.color,

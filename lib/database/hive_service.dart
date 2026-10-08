@@ -23,16 +23,13 @@ class HiveService {
     List<Task> tasks = [];
 
     for (int i = 0; i < box.length; i++) {
-      final data = box.getAt(i);
-
       tasks.add(
         Task(
-          title: data['title'],
-          isDone: data['isDone'],
+          title: box.getAt(i)['title'],
+          isDone: box.getAt(i)['isDone']
         ),
       );
     }
-
     return tasks;
   }
 

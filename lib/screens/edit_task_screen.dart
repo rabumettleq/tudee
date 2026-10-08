@@ -5,7 +5,7 @@ import '../widgets/tudee_header.dart';
 class EditTaskScreen extends StatefulWidget {
   final Task task;
 
-  EditTaskScreen({super.key, required this.task});
+  const EditTaskScreen({super.key, required this.task});
 
   @override
   State<EditTaskScreen> createState() => _EditTaskScreenState();
@@ -87,7 +87,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                         Padding(
                           padding: EdgeInsets.only(top: 2),
                           child: Image.asset(
-                            'assets/icons/document-add.png',
+                            'assets/icons/document-icon.png',
                             width: 24,
                             height: 24,
                             fit: BoxFit.contain,

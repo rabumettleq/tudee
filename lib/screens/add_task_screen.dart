@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/tudee_header.dart';
 
 class AddTaskScreen extends StatefulWidget {
-  AddTaskScreen({super.key});
+  const AddTaskScreen({super.key});
 
   @override
   State<AddTaskScreen> createState() => _AddTaskScreenState();
@@ -72,7 +72,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         Padding(
                           padding: EdgeInsets.only(top: 2),
                           child: Image.asset(
-                            'assets/icons/clipboard-add.png',
+                            'assets/icons/clipboard-icon.png',
                             width: 24,
                             height: 24,
                             fit: BoxFit.contain,

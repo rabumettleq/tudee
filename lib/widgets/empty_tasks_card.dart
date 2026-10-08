@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class EmptyTasksCard extends StatelessWidget {
+  const EmptyTasksCard({super.key});
   @override
   Widget build(BuildContext context) {
     return Container(

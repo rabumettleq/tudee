@@ -6,7 +6,8 @@ class TaskCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onStatusTap;
 
-  TaskCard({
+  const TaskCard({
+    super.key,
     required this.task,
     required this.onTap,
     required this.onStatusTap,
