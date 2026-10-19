@@ -5,12 +5,14 @@ class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback onTap;
   final VoidCallback onStatusTap;
+  final VoidCallback onDeleteTap;
 
   const TaskCard({
     super.key,
     required this.task,
     required this.onTap,
     required this.onStatusTap,
+    required this.onDeleteTap,
   });
 
   @override
@@ -39,33 +41,49 @@ class TaskCard extends StatelessWidget {
           children: [
             SizedBox(
               height: 28,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: GestureDetector(
-                  onTap: onStatusTap,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: task.isDone
-                          ? Color(0xFF76C499)
-                          : Color(0xFF9887F5),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Text(
-                      task.isDone ? 'Done' : 'TODO',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        height: 16 / 12,
-                        color: Color(0xDEFFFFFF),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: onStatusTap,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: task.isDone
+                            ? Color(0xFF76C499)
+                            : Color(0xFF9887F5),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        task.isDone ? 'Done' : 'TODO',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          height: 16 / 12,
+                          color: Color(0xDEFFFFFF),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  IconButton(
+                    onPressed: onDeleteTap,
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 22,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 28,
+                      minHeight: 28,
+                    ),
+                    tooltip: 'Delete task',
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 8),

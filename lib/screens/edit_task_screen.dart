@@ -35,6 +35,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     FocusScope.of(context).unfocus();
 
     Task updatedTask = Task(
+      id: widget.task.id,
       title: title,
       isDone: widget.task.isDone,
     );

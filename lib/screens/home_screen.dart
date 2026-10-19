@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database/hive_service.dart';
+import '../database/firestore_service.dart';
 import '../models/task.dart';
 import '../widgets/tudee_header.dart';
 import '../widgets/task_stats_card.dart';
@@ -18,20 +18,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final HiveService hiveService = HiveService();
-  List<Task> tasks = [];
+  final FirestoreService firestoreService = FirestoreService();
+  late Stream<List<Task>> tasksStream;
   bool isChangingStatus = false;
+  final Set<String> deletingTaskIds = {};
 
   @override
   void initState() {
     super.initState();
-    tasks = hiveService.getTasks();
+    tasksStream = firestoreService.getTasks();
   }
 
-  void loadTasks() {
-    setState(() {
-      tasks = hiveService.getTasks();
-    });
+  void showError(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
   }
 
   Future<void> addTask() async {
@@ -46,26 +53,22 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    await hiveService.addTask(Task(title: title));
-
-    if (!mounted) {
-      return;
+    try {
+      await firestoreService.addTask(Task(title: title));
+    } catch (error) {
+      showError('Could not add task. Please try again.');
     }
-
-    loadTasks();
   }
 
-  Future<void> editTask(int index) async {
-    if (isChangingStatus) {
+  Future<void> editTask(Task task) async {
+    if (isChangingStatus || deletingTaskIds.contains(task.id)) {
       return;
     }
 
     Task? updatedTask = await Navigator.push<Task>(
       context,
       MaterialPageRoute(
-        builder: (context) => EditTaskScreen(
-          task: tasks[index],
-        ),
+        builder: (context) => EditTaskScreen(task: task),
       ),
     );
 
@@ -73,124 +76,149 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    await hiveService.updateTask(index, updatedTask);
-
-    if (!mounted) {
-      return;
+    try {
+      await firestoreService.updateTask(task.id!, updatedTask);
+    } catch (error) {
+      showError('Could not update task. Please try again.');
     }
-
-    loadTasks();
   }
 
-  Future<void> toggleTaskStatus(int index) async {
-    if (isChangingStatus) {
+  Future<void> toggleTaskStatus(Task task) async {
+    if (isChangingStatus || deletingTaskIds.contains(task.id)) {
       return;
     }
 
     isChangingStatus = true;
 
     Task updatedTask = Task(
-      title: tasks[index].title,
-      isDone: !tasks[index].isDone,
+      id: task.id,
+      title: task.title,
+      isDone: !task.isDone,
     );
 
     try {
-      await hiveService.updateTask(index, updatedTask);
-
-      if (!mounted) {
-        return;
-      }
-
-      loadTasks();
+      await firestoreService.updateTask(task.id!, updatedTask);
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not update task status. Please try again.'),
-        ),
-      );
+      showError('Could not update task status. Please try again.');
     } finally {
       isChangingStatus = false;
     }
   }
 
+  Future<void> deleteTask(Task task) async {
+    if (isChangingStatus || deletingTaskIds.contains(task.id)) {
+      return;
+    }
+
+    String id = task.id!;
+    deletingTaskIds.add(id);
+
+    try {
+      await firestoreService.deleteTask(id);
+    } catch (error) {
+      showError('Could not delete task. Please try again.');
+    } finally {
+      deletingTaskIds.remove(id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    int doneCount = tasks.where((task) => task.isDone).length;
-    int todoCount = tasks.length - doneCount;
-
     return Scaffold(
       backgroundColor: Color(0xFFFCE8E8),
       appBar: TudeeHeader(),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 360),
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(16, 32, 16, 96),
-            children: [
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome ${widget.name}',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        height: 24 / 20,
-                        color: Color(0xDE1F1F1F),
-                      ),
+      body: StreamBuilder<List<Task>>(
+        stream: tasksStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Could not load tasks. Please try again.'),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF49BAF2),
+              ),
+            );
+          }
+
+          List<Task> tasks = snapshot.data ?? [];
+          int doneCount = tasks.where((task) => task.isDone).length;
+          int todoCount = tasks.length - doneCount;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 360),
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(16, 32, 16, 96),
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    SizedBox(height: 8),
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: TaskStatsCard(
-                            title: 'Done',
-                            count: doneCount,
-                            color: Color(0xFF76C499),
-                            imagePath: 'assets/icons/done-icon.png',
+                        Text(
+                          'Welcome ${widget.name}',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            height: 24 / 20,
+                            color: Color(0xDE1F1F1F),
                           ),
                         ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: TaskStatsCard(
-                            title: 'To-Do',
-                            count: todoCount,
-                            color: Color(0xFF9887F5),
-                            imagePath: 'assets/icons/todo-icon.png',
-                          ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TaskStatsCard(
+                                title: 'Done',
+                                count: doneCount,
+                                color: Color(0xFF76C499),
+                                imagePath: 'assets/icons/done-icon.png',
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: TaskStatsCard(
+                                title: 'To-Do',
+                                count: todoCount,
+                                color: Color(0xFF9887F5),
+                                imagePath: 'assets/icons/todo-icon.png',
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 16),
+                  if (tasks.isEmpty) EmptyTasksCard(),
+                  for (int i = 0; i < tasks.length; i++)
+                    TaskCard(
+                      task: tasks[i],
+                      onTap: () {
+                        editTask(tasks[i]);
+                      },
+                      onStatusTap: () {
+                        toggleTaskStatus(tasks[i]);
+                      },
+                      onDeleteTap: () {
+                        deleteTask(tasks[i]);
+                      },
+                    ),
+                ],
               ),
-              SizedBox(height: 16),
-              if (tasks.isEmpty) EmptyTasksCard(),
-              for (int i = 0; i < tasks.length; i++)
-                TaskCard(
-                  task: tasks[i],
-                  onTap: () {
-                    editTask(i);
-                  },
-                  onStatusTap: () {
-                    toggleTaskStatus(i);
-                  },
-                ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
       floatingActionButton: Container(
         width: 64,
